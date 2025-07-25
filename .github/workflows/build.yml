@@ -48,9 +48,11 @@ jobs:
             echo "开始构建镜像: $image_name 用 Dockerfile: $dockerfile"
 
             # 构建并推送镜像
+            image_name_tag = "$ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE/$image_name"
+            echo "docker push $image_name_tag"
             docker buildx build \
               --push \
-              --tag $ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE/$image_name \
+              --tag $image_name_tag \
               --file $dockerfile \
               .
 
