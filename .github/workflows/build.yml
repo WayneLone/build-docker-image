@@ -28,11 +28,16 @@ jobs:
           password: ${{ env.ALIYUN_REGISTRY_PASSWORD }}
       - name: Read images.txt and build/push images
         run: |
-          mkdir -p tmp
+          if [[ ! -f "images.txt" ]]; then
+            echo "错误: images.txt 文件不存在!"
+            exit 1
+          fi
+
           # 从images.txt读取镜像信息并构建
           while IFS= read -r line; do
             # 跳过空行
-            if [[ -z "$line" ]]; then
+            [[ -z "$line" ]] && continue
+            if echo "$line" | grep -q '^\s*#'; then
               continue
             fi
 
@@ -48,8 +53,7 @@ jobs:
             echo "开始构建镜像: $image_name 用 Dockerfile: $dockerfile"
 
             # 构建并推送镜像
-            # image_name_tag = "$ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE/$image_name"
-            image_name_tag = "registry.cn-zhangjiakou.aliyuncs.com/dimsolo/$image_name"
+            image_name_tag = "$ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE/$image_name"
             echo "docker push $image_name_tag"
             docker buildx build \
               --push \
@@ -59,6 +63,3 @@ jobs:
 
             echo "镜像 $image_name 构建并推送完成"
           done < images.txt
-
-          # 清理临时目录
-          rm -rf tmp
